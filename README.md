@@ -1,2 +1,2 @@
 # communication-protocols
-This repositry is about communication protocols 
+This repository is about communication protocols 
