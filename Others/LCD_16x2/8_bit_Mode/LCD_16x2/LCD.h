@@ -31,7 +31,9 @@ void SEND_A_COMMAND(unsigned char command);
 void SEND_A_CHARACTER(unsigned char character);
 void LCD_CLEAR(void);
 void init_LCD(void);
-#define max 32
+void LCD_PRINT(char *str);
+void LCD_SET_CURSOR(uint8_t row, uint8_t clm);
+#define max 32			
 
 
 #endif /* LCD_H_ */

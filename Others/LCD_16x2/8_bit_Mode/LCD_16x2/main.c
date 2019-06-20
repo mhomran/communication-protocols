@@ -16,7 +16,9 @@
 int main(void)
 {
 	init_LCD();
-
+	LCD_PRINT("lol");
+	LCD_PRINT("pop");
+	LCD_SET_CURSOR(0,0);
 	while (1) 
     {
     }
