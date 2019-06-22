@@ -46,13 +46,13 @@ void INIT_LCD_I2C(){
 	
 	N=0;
 	i = 0;
-	MSB_nibble = 1;
-	TCCR0A |= 1 << WGM01;
+	MSB_nibble = 0;			//for 0x20 command in one nibble only, so that LCD works
+	TCCR0A |= 1 << WGM01;	//-> to execute it but 0x02 in the buffer and make MSB_nibble flag 0
 	TIMSK0 |= 1 << OCIE0A | 1 << OCIE0B;
 	OCR0A  = 62;		//250 Hz freq - 4 ms period
 	OCR0B  = 31;
-
-	LCD_INSTs[N].data = 0x20; LCD_INSTs[N].Type = 1; N++;		//is a must for 4-bit mode
+	
+	LCD_INSTs[N].data = 0x02; LCD_INSTs[N].Type = 1; N++;
 	SEND_A_COMMAND(0x28);
 	SEND_A_COMMAND(0x0F);
 	LCD_CLR();
@@ -82,14 +82,14 @@ ISR(TIMER0_COMPB_vect){
 		MSB_nibble = 0;
 		}
 		else {
-		last_data = ((LCD_INSTs[i].data << 4) & 0xF0) | 0b00001100;	
+		last_data = (LCD_INSTs[i].data << 4) | 0b00001100;	
 		MSB_nibble = 1;
 		i++;
 		}
 		beginTransmission(DEVICE); // start transmission to device
 		write(last_data);
 		endTransmissionThenStop(); // end transmission
-		
+//		i++;
 	}
 	else{
 		
@@ -98,7 +98,7 @@ ISR(TIMER0_COMPB_vect){
 		MSB_nibble = 0;
 		}
 		else{
-		last_data = ((LCD_INSTs[i].data << 4)& 0xF0) | 0b00001101;	
+		last_data = (LCD_INSTs[i].data << 4)  | 0b00001101;	
 		MSB_nibble = 1;
 		i++;
 		}
@@ -106,6 +106,7 @@ ISR(TIMER0_COMPB_vect){
 		beginTransmission(DEVICE); // start transmission to device
 		write(last_data);
 		endTransmissionThenStop(); // end transmission
+//		i++;
 	}
 }
 void LCD_SET_CURSOR(uint8_t row, uint8_t clm){
