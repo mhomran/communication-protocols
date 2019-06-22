@@ -62,7 +62,7 @@ void INIT_LCD_I2C(){
 }
 
 ISR(TIMER0_COMPA_vect){
-	sei();
+	sei();					//enable nested interrupts for TWI because it needs to handle the bus as soon as the TWINT is set.
 	last_data = (last_data & 0b11111011) ;
 	
 	beginTransmission(DEVICE); // start transmission to device
@@ -71,7 +71,7 @@ ISR(TIMER0_COMPA_vect){
 }
 
 ISR(TIMER0_COMPB_vect){
-	sei();
+	sei();					//enable nested interrupts for TWI because it needs to handle the bus as soon as the TWINT is set.
 	if(i >= N){
 		TCCR0B &= ~(1 << CS02 | 1 << CS00);		//finish
 		i = 0;

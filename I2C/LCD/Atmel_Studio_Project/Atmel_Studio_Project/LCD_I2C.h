@@ -23,7 +23,7 @@ struct LCD_INST{
 	unsigned char data;
 };
 
-#define max 64
+#define max 120					//it's up to the user to choose the size of the buffer
 volatile struct LCD_INST LCD_INSTs[max];
 
 void INIT_LCD_I2C();
