@@ -120,19 +120,28 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="I2C.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="I2C.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="LCD_I2C.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="LCD_I2C.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="macros.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="main.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="twi.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="twi.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Wire.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="Wire.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

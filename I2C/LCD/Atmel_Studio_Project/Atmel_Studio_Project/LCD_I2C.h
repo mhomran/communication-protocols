@@ -6,12 +6,13 @@
 #include <avr/interrupt.h>
 #include <inttypes.h>
 
-#include "I2C.h"
+#include "Wire.h"
 
-#ifndef	F_CPU
 #define F_CPU 16000000UL
-#endif	
+
 #include <util/delay.h>
+
+#define DEVICE 0x27		//device address
 
 volatile int i ;
 volatile int N ;
@@ -22,10 +23,12 @@ struct LCD_INST{
 	unsigned char data;
 };
 
-#define max 32			
+#define max 64
 volatile struct LCD_INST LCD_INSTs[max];
 
-void INIT_LCD_I2C(uint8_t ADDR_fn);
-
-
+void INIT_LCD_I2C();
+void SEND_A_COMMAND(unsigned char command);
+void LCD_PRINT(char *str);
+void LCD_SET_CURSOR(uint8_t row, uint8_t clm);
+void LCD_CLR(void);
 #endif /* LCD_I2C_H_ */
