@@ -11,7 +11,7 @@ void SEND_A_COMMAND(unsigned char command){
 	TCCR0B &=~( 1 << CS02 | 1 << CS00);
 	}
 	LCD_INSTs[N].data = command; LCD_INSTs[N].Type = 1; N++;
-	LCD_INSTs[N].data = (command << 4); LCD_INSTs[N].Type = 1; N++;
+	//LCD_INSTs[N].data = (command << 4); LCD_INSTs[N].Type = 1; N++;
 	TCCR0B |= 1 << CS02 | 1 << CS00;
 }
 void LCD_PRINT(char *str)
@@ -24,7 +24,7 @@ void LCD_PRINT(char *str)
 	while(str[x]!=0)  /* send each char of string till the NULL */
 	{
 		LCD_INSTs[N].data = str[x]; LCD_INSTs[N].Type = 0; N++;
-		LCD_INSTs[N].data = (str[x] << 4); LCD_INSTs[N].Type = 0; N++;
+		//LCD_INSTs[N].data = (str[x] << 4); LCD_INSTs[N].Type = 0; N++;
 		x++;
 	}
 	TCCR0B |= 1 << CS02 | 1 << CS00;	
@@ -46,13 +46,11 @@ void INIT_LCD_I2C(){
 	
 	N=0;
 	i = 0;
-	char_idx =0;
+	MSB_nibble = 1;
 	TCCR0A |= 1 << WGM01;
 	TIMSK0 |= 1 << OCIE0A | 1 << OCIE0B;
 	OCR0A  = 62;		//250 Hz freq - 4 ms period
 	OCR0B  = 31;
-
-	
 
 	LCD_INSTs[N].data = 0x20; LCD_INSTs[N].Type = 1; N++;		//is a must for 4-bit mode
 	SEND_A_COMMAND(0x28);
@@ -79,25 +77,35 @@ ISR(TIMER0_COMPB_vect){
 	}
 	else if(LCD_INSTs[i].Type)	//command
 	{
+		if(MSB_nibble){
 		last_data = (LCD_INSTs[i].data & 0xF0) | 0b00001100; 
-		
+		MSB_nibble = 0;
+		}
+		else {
+		last_data = ((LCD_INSTs[i].data << 4) & 0xF0) | 0b00001100;	
+		MSB_nibble = 1;
+		i++;
+		}
 		beginTransmission(DEVICE); // start transmission to device
 		write(last_data);
 		endTransmissionThenStop(); // end transmission
-		i++;
+		
 	}
 	else{
-		if(char_idx == 16){
-			
-			char_idx = 0;
-		}
+		
+		if(MSB_nibble){	
 		last_data = (LCD_INSTs[i].data & 0xF0) | 0b00001101;
+		MSB_nibble = 0;
+		}
+		else{
+		last_data = ((LCD_INSTs[i].data << 4)& 0xF0) | 0b00001101;	
+		MSB_nibble = 1;
+		i++;
+		}
 		
 		beginTransmission(DEVICE); // start transmission to device
 		write(last_data);
 		endTransmissionThenStop(); // end transmission
-		i++;
-		char_idx++;
 	}
 }
 void LCD_SET_CURSOR(uint8_t row, uint8_t clm){

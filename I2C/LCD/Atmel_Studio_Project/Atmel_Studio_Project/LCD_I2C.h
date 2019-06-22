@@ -16,8 +16,8 @@
 
 volatile int i ;
 volatile int N ;
-volatile int char_idx ;
 volatile int last_data;
+volatile int MSB_nibble;
 struct LCD_INST{
 	int Type;					//1 for command, 0 for data
 	unsigned char data;
