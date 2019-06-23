@@ -1,9 +1,9 @@
 #include "USART.h"
 
 
-void INIT_USART(void){
-	UBRR0 = 207;	
-	DDRD |= (1 << PIND4);	
+void INIT_USART(void){				
+	UBRR0 = (F_CPU/2/BAUD)-1;	
+	DDRD |= (1 << PIND4);								//receiver
 	UCSR0B |= 1 << TXEN0 | 1 << RXCIE0 | 1 << RXEN0;
 	UCSR0B &= ~(1 << UCSZ02);
 	UCSR0C |= 1 << UCSZ00 | 1 << UCSZ01 | 1 << UMSEL00;
@@ -11,6 +11,14 @@ void INIT_USART(void){
 	sei();
 }
 
+void INIT_UART(void){
+	UBRR0 = (F_CPU/16/BAUD)-1;
+	UCSR0B |= 1 << TXEN0 | 1 << RXCIE0 | 1 << RXEN0;
+	UCSR0B &= ~(1 << UCSZ02);
+	UCSR0C |= 1 << UCSZ00 | 1 << UCSZ01;
+	
+	sei();	
+}
 void USART_TX(char data )
 {
 	/* Wait for empty transmit buffer */
