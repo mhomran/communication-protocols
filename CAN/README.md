@@ -1,0 +1,1 @@
+## This folder is about using CAN (Controller Area Network) communication protocol.
