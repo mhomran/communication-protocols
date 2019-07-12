@@ -2,14 +2,10 @@
 
 
 void INIT_UART(int BAUD){
-	DDRD 	|= 1 << PIND1;
-	PORTD |= 1 << PIND1;
 	UBRR0 = (F_CPU/16/BAUD)-1;
 	UCSR0B |= 1 << TXEN0;
 	UCSR0B &= ~(1 << UCSZ02);
 	UCSR0C |= 1 << UCSZ00 | 1 << UCSZ01;
-	
-	sei();
 }
 
 void USART_TX(char data )
