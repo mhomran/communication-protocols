@@ -73,7 +73,7 @@ ISR(USART_RX_vect){		//((1/9600)*(13+2)/(8+2))^-1 ->  //Baud rate necessary to c
 	data_rx = UDR0;										//the receiver will read 0x00 and a frame error flag will be set
 														//the receiver will start reading another frame only if start transition happens
 	if (WAIT_SYNC_BREAK && data_rx == 0){				//from high (idle) to low.
-	USART_SET_BAUD(6400);							
+	USART_SET_BAUD(9600);							
 	WAIT_SYNC_BREAK = 0;								//baud speed is chosen according to the speed of processor to handle the ISR 
 	WAIT_SYNC_FIELD = 1;									
 	}
@@ -83,7 +83,7 @@ ISR(USART_RX_vect){		//((1/9600)*(13+2)/(8+2))^-1 ->  //Baud rate necessary to c
 			WAIT_ID = 1;
 		}
 		else{	//RETURN BACK
-			USART_SET_BAUD(9600);
+			USART_SET_BAUD(6400);
 			WAIT_SYNC_BREAK = 1;
 			WAIT_SYNC_FIELD = 0;
 		}
@@ -124,7 +124,7 @@ ISR(USART_RX_vect){		//((1/9600)*(13+2)/(8+2))^-1 ->  //Baud rate necessary to c
 	{
 		if(DATA_INDEX == DATA_LEN)
 		{
-			USART_SET_BAUD(9600);
+			USART_SET_BAUD(6400);
 			WAIT_SYNC_BREAK = 1;
 		}
 		else
@@ -137,7 +137,7 @@ ISR(USART_RX_vect){		//((1/9600)*(13+2)/(8+2))^-1 ->  //Baud rate necessary to c
 	{
 		if(DATA_INDEX == DATA_LEN)
 		{
-			USART_SET_BAUD(9600);
+			USART_SET_BAUD(6400);
 			WAIT_SYNC_BREAK = 1;
 		}
 		else
