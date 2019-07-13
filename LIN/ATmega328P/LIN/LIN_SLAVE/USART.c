@@ -3,7 +3,7 @@
 
 void INIT_UART(int BAUD){
 	UBRR0 = (F_CPU/16/BAUD)-1;
-	UCSR0B |= 1 << TXEN0 | 1 << RXCIE0;
+	UCSR0B |= 1 << RXCIE0;
 	UCSR0B &= ~(1 << UCSZ02);
 	UCSR0C |= 1 << UCSZ00 | 1 << UCSZ01;
 	sei();
@@ -16,6 +16,7 @@ void INIT_UART(int BAUD){
 	DATA_INDEX = 0;
 	VALID_ID = 0;
 	slave_id = 0x1;
+	WAIT_CHECKSUM = 0;
 	//data_bytes[0] = 0x1;
 	//data_bytes[1] = 0x1;
 	//data_bytes[2] = (0xff - 0x2); //checksum
@@ -108,19 +109,20 @@ ISR(USART_RX_vect){
 			if(data_rx == slave_id)			//transmit
 			{
 				RECEIVE = 0;
-				UDR0 = data_bytes[0];
+				UDR0 = data_bytes_TX[0];
 				DATA_INDEX = 1;
 			}
 			else{
 				RECEIVE = 1;
 				DATA_INDEX = 0;
+				WAIT_CHECKSUM = 0;
 			}
 			WAIT_ID = 0;
 		}
 	}
 	else if (RECEIVE) 
 	{		
-		data_bytes[DATA_INDEX] = data_rx;
+		data_bytes_RX[DATA_INDEX] = data_rx;
 		DATA_INDEX++;
 
 		if(DATA_INDEX == DATA_LEN)
@@ -128,11 +130,12 @@ ISR(USART_RX_vect){
 			//disable RXEN and enable CAPT interrupt
 			UCSR0B &= ~(1 << RXEN0);
 			TIMSK1 |= (1 << ICIE1);			
+			WAIT_CHECKSUM = 1;
 		}
 	}
 	else 
 	{
-		UDR0 = data_bytes[DATA_INDEX];
+		UDR0 = data_bytes_TX[DATA_INDEX];
 		DATA_INDEX++;
 	
 		if(DATA_INDEX == DATA_LEN)
