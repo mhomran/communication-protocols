@@ -10,19 +10,20 @@ void INIT_UART(int BAUD){
 
 void USART_TX(char data )
 {
-	/* Wait for empty transmit buffer */
-	while ( !( UCSR0A & (1<<UDRE0)) )
-	;
 	/* Put data into buffer, sends the data */
 	UDR0 = data;
+	/* Wait for transmit flag */
+	while ( !( UCSR0A & (1<<TXC0)) )
+	;
+	UCSR0A |= 1 << TXC0;
 }
 
 void USART_PRINTF(const char *str)
 {
 	int x =0;
 	while (str[x]){
-	USART_TX(str[x]);
-	x++;
+		USART_TX(str[x]);
+		x++;
 	}
 }
 
@@ -50,10 +51,10 @@ void USART_PRINTN(uint8_t ch){
 			break;
 		}
 	}
-		
+	
 	USART_PRINTF(str);
 }
 
 void USART_SET_BAUD(int BAUD_FN){
-UBRR0 = (F_CPU/16/BAUD_FN)-1;
+	UBRR0 = (F_CPU/16/BAUD_FN)-1;
 }
