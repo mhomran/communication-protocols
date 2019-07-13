@@ -123,10 +123,10 @@
     <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="USART.c">
+    <Compile Include="LIN_SLAVE.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="USART.h">
+    <Compile Include="LIN_SLAVE.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

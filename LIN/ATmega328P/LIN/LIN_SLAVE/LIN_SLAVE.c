@@ -1,9 +1,9 @@
-#include "USART.h"
+#include "LIN_SLAVE.h"
 
 
 void INIT_UART(int BAUD){
 	UBRR0 = (F_CPU/16/BAUD)-1;
-	UCSR0B |= 1 << RXCIE0;
+	UCSR0B |= 1 << RXCIE0 | 1 << TXCIE0;
 	UCSR0B &= ~(1 << UCSZ02);
 	UCSR0C |= 1 << UCSZ00 | 1 << UCSZ01;
 	sei();
@@ -15,6 +15,7 @@ void INIT_UART(int BAUD){
 	DATA_LEN = 0;
 	DATA_INDEX = 0;
 	VALID_ID = 0;
+	VALID_DATA = 0;		//assume that the data isn't valid
 	slave_id = 0x1;
 	WAIT_CHECKSUM = 0;
 	//data_bytes[0] = 0x1;
@@ -29,43 +30,6 @@ void USART_TX(char data )
 	;
 	/* Put data into buffer, sends the data */
 	UDR0 = data;
-}
-
-void USART_PRINTF(const char *str)
-{
-	int x =0;
-	while (str[x]){
-	USART_TX(str[x]);
-	x++;
-	}
-}
-
-void USART_PRINTN(uint8_t ch){
-	char str[4];
-	
-	str[3] = '\0';
-	int i;
-	for(i = 0; i < 3; i++){
-		switch (i){
-			case 0 :
-			{
-				str[2-i] = (ch % 10) + 48;
-			}
-			break;
-			case 1 :
-			{
-				str[2-i] = ((ch / 10) % 10 )+ 48;
-			}
-			break;
-			case 2 :
-			{
-				str[2-i] = ((ch/100) % 10) + 48;
-			}
-			break;
-		}
-	}
-		
-	USART_PRINTF(str);
 }
 
 void USART_SET_BAUD(int BAUD_FN){
@@ -109,6 +73,11 @@ ISR(USART_RX_vect){
 			if(data_rx == slave_id)			//transmit
 			{
 				RECEIVE = 0;
+				//disable RXEN and disable CAPT interrupt - enable transmitter
+				UCSR0B &= ~(1 << RXEN0);
+				UCSR0B |=   1 << TXEN0;
+				TIMSK1 &= ~(1 << ICIE1);
+							
 				UDR0 = data_bytes_TX[0];
 				DATA_INDEX = 1;
 			}
@@ -120,22 +89,9 @@ ISR(USART_RX_vect){
 			WAIT_ID = 0;
 		}
 	}
-	else if (RECEIVE) 
-	{		
-		data_bytes_RX[DATA_INDEX] = data_rx;
-		DATA_INDEX++;
-
-		if(DATA_INDEX == DATA_LEN)
-		{
-			//disable RXEN and enable CAPT interrupt
-			UCSR0B &= ~(1 << RXEN0);
-			TIMSK1 |= (1 << ICIE1);			
-			WAIT_CHECKSUM = 1;
-		}
-	}
 	else 
 	{
-		UDR0 = data_bytes_TX[DATA_INDEX];
+		data_bytes_RX[DATA_INDEX] = data_rx;
 		DATA_INDEX++;
 	
 		if(DATA_INDEX == DATA_LEN)
@@ -143,6 +99,72 @@ ISR(USART_RX_vect){
 			//disable RXEN and enable CAPT interrupt
 			UCSR0B &= ~(1 << RXEN0);
 			TIMSK1 |= (1 << ICIE1);
-		}
+			WAIT_CHECKSUM = 1;
+		}	
 	} 
+}
+
+volatile int x;
+
+ISR(TIMER1_CAPT_vect){
+
+	if( !(TCCR1B & (1 << ICES1)) ){			//falling ?
+		TCCR1B |= (1 << ICES1); //triggers rising edge
+		TCNT1 = 0;				//clear timer's value
+	}
+	else
+	{
+		x = ICR1;									//10840 is the time to cover 13 bit
+		if ( x >= 10840  || (TIFR1 & (1 << TOV1)) ){
+			WAIT_SYNC_FIELD = 1;
+			//enable RXEN and disable CAPT interrupt
+			UCSR0B |= 1 << RXEN0;
+			TIMSK1 &= ~(1 << ICIE1);
+		}
+		else
+		{
+			TCCR1B &= ~(1 << ICES1); //triggers falling edge
+		}
+	}
+	TIFR1 |= 1 << TOV1;		//clear overflow flag
+}
+
+void checksum(void){
+	int i = 0;
+	int sum = 0;
+	if(WAIT_CHECKSUM)
+	{
+		while(i < (DATA_LEN-1) )
+		{
+			sum += data_bytes_RX[i];
+			if(sum >= 256)
+			{
+				sum &= 0xFF;
+				sum ++;
+			}
+			i++;
+		}
+
+		sum = ~sum;
+		sum &= 0xFF;
+
+		if(sum == data_bytes_RX[DATA_LEN-1])
+		VALID_DATA = 1;
+		else
+		VALID_DATA = 0;
+
+		WAIT_CHECKSUM = 0;
+	}
+}
+ISR(USART_TX_vect)
+{
+	UDR0 = data_bytes_TX[DATA_INDEX];
+	DATA_INDEX++;
+	
+	if(DATA_INDEX == DATA_LEN)
+	{
+		//disable RXEN and enable CAPT interrupt - disable transmitter
+		UCSR0B &= ~(1 << RXEN0 | 1 << TXEN0);
+		TIMSK1 |=  (1 << ICIE1);
+	}
 }
