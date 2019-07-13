@@ -3,7 +3,7 @@
 
 void INIT_UART(int BAUD){
 	UBRR0 = (F_CPU/16/BAUD)-1;
-	UCSR0B |= 1 << TXEN0 | 1 << RXEN0 | 1 << RXCIE0;
+	UCSR0B |= 1 << TXEN0 | 1 << RXCIE0;
 	UCSR0B &= ~(1 << UCSZ02);
 	UCSR0C |= 1 << UCSZ00 | 1 << UCSZ01;
 	sei();
@@ -15,7 +15,10 @@ void INIT_UART(int BAUD){
 	DATA_LEN = 0;
 	DATA_INDEX = 0;
 	VALID_ID = 0;
-	slave_id = 0x1;
+	slave_id = 0x2;
+	//data_bytes[0] = 0x1;
+	//data_bytes[1] = 0x1;
+	//data_bytes[2] = (0xff - 0x2); //checksum
 }
 
 void USART_TX(char data )
@@ -68,22 +71,22 @@ void USART_SET_BAUD(int BAUD_FN){
 UBRR0 = (F_CPU/16/BAUD_FN)-1;
 }
 
-ISR(USART_RX_vect){		//((1/9600)*(13+2)/(8+2))^-1 ->  //Baud rate necessary to cover 13 bit position in Normal speed 
-														//after that time the bus will be in "break" condition
-	data_rx = UDR0;										//the receiver will read 0x00 and a frame error flag will be set
-														//the receiver will start reading another frame only if start transition happens
-	if (WAIT_SYNC_BREAK && data_rx == 0){				//from high (idle) to low.
-	USART_SET_BAUD(9600);							
-	WAIT_SYNC_BREAK = 0;								//baud speed is chosen according to the speed of processor to handle the ISR 
+ISR(USART_RX_vect){		
+															
+	data_rx = UDR0;											
+	/*														
+	if (WAIT_SYNC_BREAK && data_rx ==0){					
+	USART_SET_BAUD(19200);									
+	WAIT_SYNC_BREAK = 0;									
 	WAIT_SYNC_FIELD = 1;									
-	}
-	else if (WAIT_SYNC_FIELD){
+	}														
+	else*/ if (WAIT_SYNC_FIELD){
 		if(data_rx == 0x55){
 			WAIT_SYNC_FIELD = 0;
 			WAIT_ID = 1;
 		}
 		else{	//RETURN BACK
-			USART_SET_BAUD(6400);
+			USART_SET_BAUD(12800);
 			WAIT_SYNC_BREAK = 1;
 			WAIT_SYNC_FIELD = 0;
 		}
@@ -124,7 +127,7 @@ ISR(USART_RX_vect){		//((1/9600)*(13+2)/(8+2))^-1 ->  //Baud rate necessary to c
 	{
 		if(DATA_INDEX == DATA_LEN)
 		{
-			USART_SET_BAUD(6400);
+			USART_SET_BAUD(12800);
 			WAIT_SYNC_BREAK = 1;
 		}
 		else
@@ -137,7 +140,7 @@ ISR(USART_RX_vect){		//((1/9600)*(13+2)/(8+2))^-1 ->  //Baud rate necessary to c
 	{
 		if(DATA_INDEX == DATA_LEN)
 		{
-			USART_SET_BAUD(6400);
+			USART_SET_BAUD(12800);
 			WAIT_SYNC_BREAK = 1;
 		}
 		else
