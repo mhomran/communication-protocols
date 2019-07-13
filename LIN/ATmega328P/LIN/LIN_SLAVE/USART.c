@@ -15,7 +15,7 @@ void INIT_UART(int BAUD){
 	DATA_LEN = 0;
 	DATA_INDEX = 0;
 	VALID_ID = 0;
-	slave_id = 0x2;
+	slave_id = 0x1;
 	//data_bytes[0] = 0x1;
 	//data_bytes[1] = 0x1;
 	//data_bytes[2] = (0xff - 0x2); //checksum
@@ -74,21 +74,16 @@ UBRR0 = (F_CPU/16/BAUD_FN)-1;
 ISR(USART_RX_vect){		
 															
 	data_rx = UDR0;											
-	/*														
-	if (WAIT_SYNC_BREAK && data_rx ==0){					
-	USART_SET_BAUD(19200);									
-	WAIT_SYNC_BREAK = 0;									
-	WAIT_SYNC_FIELD = 1;									
-	}														
-	else*/ if (WAIT_SYNC_FIELD){
+	if (WAIT_SYNC_FIELD){
 		if(data_rx == 0x55){
 			WAIT_SYNC_FIELD = 0;
 			WAIT_ID = 1;
 		}
-		else{	//RETURN BACK
-			USART_SET_BAUD(12800);
-			WAIT_SYNC_BREAK = 1;
-			WAIT_SYNC_FIELD = 0;
+		else
+		{	//RETURN BACK
+			//disable RXEN and enable CAPT interrupt
+			UCSR0B &= ~(1 << RXEN0);
+			TIMSK1 |= (1 << ICIE1);
 		}
 	}
 	else if (WAIT_ID){		//data + 1(checksum) 
@@ -124,29 +119,27 @@ ISR(USART_RX_vect){
 		}
 	}
 	else if (RECEIVE) 
-	{
+	{		
+		data_bytes[DATA_INDEX] = data_rx;
+		DATA_INDEX++;
+
 		if(DATA_INDEX == DATA_LEN)
 		{
-			USART_SET_BAUD(12800);
-			WAIT_SYNC_BREAK = 1;
-		}
-		else
-		{
-		data_bytes[0] = data_rx;
-		DATA_INDEX++;
+			//disable RXEN and enable CAPT interrupt
+			UCSR0B &= ~(1 << RXEN0);
+			TIMSK1 |= (1 << ICIE1);			
 		}
 	}
 	else 
 	{
+		UDR0 = data_bytes[DATA_INDEX];
+		DATA_INDEX++;
+	
 		if(DATA_INDEX == DATA_LEN)
 		{
-			USART_SET_BAUD(12800);
-			WAIT_SYNC_BREAK = 1;
-		}
-		else
-		{
-			UDR0 = data_bytes[0];
-			DATA_INDEX++;
+			//disable RXEN and enable CAPT interrupt
+			UCSR0B &= ~(1 << RXEN0);
+			TIMSK1 |= (1 << ICIE1);
 		}
 	} 
 }
