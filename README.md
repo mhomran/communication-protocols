@@ -3,7 +3,7 @@ This repository is about communication protocols for interfacing with devices us
 
 ## Micro controllers: 
 - TM4C1294NCPDTI
-- ATmega32P
+- ATmega328P
 
 ## devices:
 - ADXL345 accelerometer.
