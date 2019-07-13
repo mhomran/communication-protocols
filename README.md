@@ -13,3 +13,5 @@ This repository is about communication protocols for interfacing with devices us
 - I2C
 - SPI
 - USART
+- CAN
+- LIN
