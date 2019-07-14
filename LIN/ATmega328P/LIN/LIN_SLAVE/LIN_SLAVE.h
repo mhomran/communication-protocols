@@ -9,13 +9,14 @@
 
 volatile uint8_t WAIT_SYNC_BREAK, WAIT_SYNC_FIELD, WAIT_ID, RECEIVE, DATA_LEN, DATA_INDEX,VALID_ID , slave_id;
 volatile uint8_t VALID_DATA;
-
-void checksum(void);
-
-volatile uint8_t data_bytes_TX[9];
+volatile uint8_t data_bytes_TX[9],DATA_LEN_TX;
 volatile uint8_t data_bytes_RX[9];
-
 volatile uint8_t WAIT_CHECKSUM;
+
+void generate_checksum(void);
+void checksum(void);
+void init_Timer1(void);
+
 
 volatile uint8_t data_rx;
 void INIT_UART(int);

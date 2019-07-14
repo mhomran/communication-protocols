@@ -5,8 +5,6 @@
 
 #include "LIN_SLAVE.h"
 
-void init_Timer1(void);
-
 
 int main()
  { 
@@ -24,9 +22,5 @@ int main()
    return 0;
  }
 
-void init_Timer1(void){
-  TCCR1B &= ~(1 << ICES1); //triggers falling edge
-  TIMSK1 |= 1 << ICIE1;
-  TCCR1B |= 1 << CS10 ; // prescaler = 1
-}
+
 

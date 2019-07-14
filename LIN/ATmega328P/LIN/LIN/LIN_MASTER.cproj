@@ -120,13 +120,13 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="LIN_MASTER.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="LIN_MASTER.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="main.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="USART.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="USART.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>
