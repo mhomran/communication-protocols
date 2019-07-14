@@ -8,9 +8,11 @@
 
 int main()
  { 
+	DDRD |= 1 << PIND7;
+	
 	INIT_UART(9600);
 
-	init_Timer1();
+	//init_Timer1();
 	
 	init_Timer0();
 
