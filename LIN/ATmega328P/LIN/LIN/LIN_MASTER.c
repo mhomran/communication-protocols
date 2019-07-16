@@ -244,7 +244,9 @@ void generate_checksum(void){
 void init_Timer0(void){	//FAST PWM OVF set on TOP -> OCR0A
 	TCCR0A |= 1 << WGM01 | 1 << WGM00;
 	TCCR0B |= 1 << WGM02;
-	OCR0A = 29;
+	int prescaler = 1024;
+	int frame_width = ceil(F_CPU / prescaler / ( ( (unsigned long)(BAUD) * BAUD_13)/( (unsigned long) (50)* BAUD_13 + 10 * BAUD) ) ); 
+	OCR0A = frame_width;
 	TIMSK0 |= 1 << TOIE0;				//timer0 overflow
 	TCCR0B |= 1 << CS02 | 1 << CS00;	//prescaler 1024
 }

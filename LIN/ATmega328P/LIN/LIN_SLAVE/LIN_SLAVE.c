@@ -158,7 +158,7 @@ ISR(TIMER1_CAPT_vect){
 	else
 	{
 		 		
-		if ( ( (ICR1L | (ICR1H << 8)) >= (int)(F_CPU/(BAUD_13/PS)) ) || (TIFR & (1 << TOV1)) ){		//F_CPU/(1/(13/19200))
+		if ( ( (ICR1L | (ICR1H << 8)) >= (int)((F_CPU)/BAUD_13/PS) ) || (TIFR & (1 << TOV1)) ){		
 				
 			WAIT_SYNC_FIELD = 1;
 			//enable RXEN and disable CAPT interrupt
