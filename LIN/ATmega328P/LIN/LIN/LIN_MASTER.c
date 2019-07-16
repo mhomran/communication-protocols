@@ -1,12 +1,16 @@
 #include "LIN_MASTER.h"
 
 
-void INIT_UART(int BAUD){
-	UBRR0 = (F_CPU/16/BAUD)-1;
+void INIT_LIN_MASTER(int BAUD_fn){
+	BAUD = BAUD_fn;
+	BAUD_13 = BAUD / 2;			//traditionally it's the half speed of the normal speed according to vector company
+	
 	UCSR0B |= 1 << TXEN0 | 1 << RXEN0 | 1 << RXCIE0;
 	UCSR0B &= ~(1 << UCSZ02);
 	UCSR0C |= 1 << UCSZ00 | 1 << UCSZ01;
 	sei();
+	
+	init_Timer0();
 
 	//initialize data
 	WAIT_SYNC_FIELD = 0;
@@ -39,12 +43,23 @@ void INIT_UART(int BAUD){
 uint8_t generate_parity(uint8_t id){
 	uint8_t P0 = 0 , P1 =0;
 	//calculate P0 , P1
-	P0 = (id & 0x1) ^ (id & 0x2) ^ (id & 0x4) ^ (id  & 0x8) ^ (id & 0x10);
-	P1 = !((id & 0x2) ^ (id & 0x4) ^ (id  & 0x8) ^ (id & 0x10) ^ (id & 0x20));	
-	id = id | (P1 << 8) | (P0 << 7);
+	P0 = ((id & 0x1) >> 0) ^ ((id & 0x2) >> 1) ^ ((id & 0x4) >> 2) ^ ((id  & 0x8) >> 3) ^ ((id & 0x10) >> 4);
+	P1 = !( ((id & 0x2) >> 1) ^ ((id & 0x4) >> 2) ^ ((id  & 0x8) >> 3) ^ ((id & 0x10) >> 4) ^ ((id & 0x20) >> 5) );
+	id = id | (P1 << 7) | (P0 << 6);
 	return id;
 }
-
+uint8_t check_parity(uint8_t id){
+	uint8_t P0 = 0 , P1 =0;
+	//calculate P0 , P1
+	P0 = ((id & 0x1) >> 0) ^ ((id & 0x2) >> 1) ^ ((id & 0x4) >> 2) ^ ((id  & 0x8) >> 3) ^ ((id & 0x10) >> 4);
+	P1 = !( ((id & 0x2) >> 1) ^ ((id & 0x4) >> 2) ^ ((id  & 0x8) >> 3) ^ ((id & 0x10) >> 4) ^ ((id & 0x20) >> 5) );
+	if( ( P1 == ( (id & 0x80) >> 7 ) ) && ( P0 == ( (id & 0x40) >> 6 ) )){
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
 void USART_TX(char data )
 {
 	/*//you don't need it anymore
@@ -80,6 +95,10 @@ ISR(USART_RX_vect){
 	}
 	else if (WAIT_ID){		//data + 1(checksum) 
 		VALID_ID = 1;
+		if(check_parity(data_rx)){
+		
+		data_rx = data_rx & 0x3F;
+		
 		if(data_rx >= 0 && data_rx < 32)
 		{
 			DATA_LEN = 3;
@@ -96,6 +115,8 @@ ISR(USART_RX_vect){
 		{
 			VALID_ID = 0;
 		}
+		}else {VALID_ID = 0;}
+			
 		if (VALID_ID){		
 			if(data_rx == slave_id)			//transmit
 			{
@@ -142,7 +163,7 @@ ISR(USART_RX_vect){
 	{	
 		if(M_WAIT_SYNC_FIELD)
 		{
-			USART_SET_BAUD(19200);
+			USART_SET_BAUD(BAUD);
 			USART_TX(0x55);
 			
 			M_WAIT_ID = 1;
@@ -164,7 +185,7 @@ ISR(USART_RX_vect){
 
 
 ISR(TIMER0_OVF_vect){
-	USART_SET_BAUD(9600);
+	USART_SET_BAUD(BAUD_13);
 	USART_TX(0x00);
 	MASTER_TASK = 1;
 	M_WAIT_SYNC_FIELD = 1;
@@ -223,7 +244,8 @@ void generate_checksum(void){
 void init_Timer0(void){	//FAST PWM OVF set on TOP -> OCR0A
 	TCCR0A |= 1 << WGM01 | 1 << WGM00;
 	TCCR0B |= 1 << WGM02;
-	OCR0A = 57;
+	OCR0A = 29;
 	TIMSK0 |= 1 << TOIE0;				//timer0 overflow
 	TCCR0B |= 1 << CS02 | 1 << CS00;	//prescaler 1024
 }
+

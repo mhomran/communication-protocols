@@ -8,16 +8,11 @@
 
 int main()
  { 
-
-	INIT_UART(19200);
 	
-	init_Timer1();
-	
-	sei();
+	INIT_LIN_SLAVE(19200);
 	
 	while (1)
 	{
-		checksum();
 	}
    return 0;
  }
