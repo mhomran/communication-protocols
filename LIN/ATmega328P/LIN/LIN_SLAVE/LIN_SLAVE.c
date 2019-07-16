@@ -3,7 +3,7 @@
 
 void INIT_LIN_SLAVE(int BAUD_fn	){
 	BAUD = BAUD_fn;
-	BAUD_13 = (BAUD/13.0);
+	BAUD_13 = BAUD/13;
 	
 	UBRRL = (F_CPU/16/BAUD)-1;
 	UCSRB |= 1 << RXCIE | 1 << TXEN;					//enabling the transmitter causing problems.
@@ -149,7 +149,7 @@ ISR(USART_RXC_vect){
 }
 
 ISR(TIMER1_CAPT_vect){
-			
+				
 	if( !(TCCR1B & (1 << ICES1)) ){			//falling ?
 		
 		TCCR1B |= (1 << ICES1); //triggers rising edge
@@ -157,8 +157,8 @@ ISR(TIMER1_CAPT_vect){
 	}
 	else
 	{
-		 								
-		if (  ( (ICR1L | (ICR1H << 8)) >= ((int)F_CPU/BAUD_13/PS) ) || (TIFR & (1 << TOV1)) ){		//F_CPU/(1/(13/19200))
+		 		
+		if ( ( (ICR1L | (ICR1H << 8)) >= (int)(F_CPU/(BAUD_13/PS)) ) || (TIFR & (1 << TOV1)) ){		//F_CPU/(1/(13/19200))
 				
 			WAIT_SYNC_FIELD = 1;
 			//enable RXEN and disable CAPT interrupt
@@ -198,10 +198,10 @@ void checksum(void){
 	}
 }
 void init_Timer1(void){
-  TCCR1B &= ~(1 << ICES1); //triggers falling edge
-  TIMSK |= 1 << TICIE1;
-  TCCR1B |= 1 << CS10 ; // prescaler = 1
-  PS = 1;
+	TCCR1B &= ~(1 << ICES1); //triggers falling edge
+	PS = 1;
+	TIMSK |= 1 << TICIE1;
+	TCCR1B |= 1 << CS10 ; // prescaler = 1
 }
 
 void generate_checksum(void){
