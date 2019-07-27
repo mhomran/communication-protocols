@@ -6,9 +6,9 @@ void INIT_LIN_SLAVE(int BAUD_fn	){
 	BAUD_13 = BAUD/13;
 	
 	UBRRL = (F_CPU/16/BAUD)-1;
-	UCSRB |= 1 << RXCIE | 1 << TXEN;					//enabling the transmitter causing problems.
-	UCSRB &= ~(1 << UCSZ2);
-	UCSRC |= 1 << UCSZ0 | 1 << UCSZ1 | 1 << URSEL;
+	UCSRB |= (uint8_t)(1 << RXCIE) | (uint8_t)(1 << TXEN);					//enabling the transmitter causing problems.
+	UCSRB &= (uint8_t) ~ ((uint8_t)(1 << UCSZ2));
+	UCSRC |= (uint8_t)(1 << UCSZ0) | (uint8_t)(1 << UCSZ1) | (uint8_t)(1 << URSEL);
 	sei();
 	
 	init_Timer1();
@@ -49,16 +49,16 @@ ISR(USART_RXC_vect){
 						
 	if (WAIT_SYNC_FIELD){
 			
-		if(data_rx == 0x55){
+		if((int)(data_rx) == 0x55){
 			WAIT_ID = 1;
 		}
 		else
 		{	//RETURN BACK
 			//disable RXEN and enable CAPT interrupt
-			UCSRB &= ~(1 << RXEN);
+			UCSRB &= (uint8_t)(~(uint8_t)(1 << RXEN));
 			
-			TIFR  |= 1 << ICF1;
-			TIMSK |= (1 << TICIE1);
+			TIFR  |= (uint8_t)(1 << ICF1);
+			TIMSK |= (uint8_t)(1 << TICIE1);
 		}
 		WAIT_SYNC_FIELD = 0;
 	}
@@ -67,17 +67,17 @@ ISR(USART_RXC_vect){
 		VALID_ID = 1;
 		
 		if(check_parity(data_rx)){
-			data_rx = data_rx & 0x3F;
+			data_rx = data_rx & (uint8_t)(0x3F);
 			
-			if(data_rx >= 0 && data_rx < 32)
+			if(data_rx >= 0 && data_rx < (uint8_t)(32))
 			{
 				DATA_LEN = 3;
 			}
-			else if(data_rx >= 32 && data_rx < 48)
+			else if(data_rx >= 32 && data_rx < (uint8_t)(48))
 			{
 				DATA_LEN = 5;
 			}
-			else if(data_rx >= 48 && data_rx < 64)
+			else if(data_rx >= 48 && data_rx < (uint8_t)(64))
 			{
 				DATA_LEN = 9;
 			}
@@ -104,10 +104,10 @@ ISR(USART_RXC_vect){
 		}
 		else{
 				//disable RXEN and enable CAPT interrupt
-				UCSRB &= ~(1 << RXEN);
+				UCSRB &= (uint8_t)(~(uint8_t) (1 << RXEN));
 			
-				TIFR  |= 1 << ICF1;
-				TIMSK |= (1 << TICIE1);
+				TIFR  |= (uint8_t)(1 << ICF1);
+				TIMSK |= (uint8_t)(1 << TICIE1);
 		}
 		WAIT_ID = 0;	
 	}
@@ -121,17 +121,17 @@ ISR(USART_RXC_vect){
 		{
 			RECEIVE = 0;
 			//disable RXEN and enable CAPT interrupt
-			UCSRB &= ~(1 << RXEN);
+			UCSRB &= (uint8_t)(~(uint8_t)(1 << RXEN));
 			
-			TIFR  |= 1 << ICF1;
-			TIMSK |= (1 << TICIE1);
+			TIFR  |= (uint8_t)(1 << ICF1);
+			TIMSK |= (uint8_t)(1 << TICIE1);
 			
 			WAIT_CHECKSUM = 1;
 		}	
 	}
 	else if(TRANSMIT)
 	{
-		PORTD  ^= 1 << PIND4;
+		PORTD  ^= (uint8_t)(1 << PIND4);
 		
 		UDR = data_bytes_TX[DATA_INDEX];
 		DATA_INDEX++;
@@ -140,56 +140,56 @@ ISR(USART_RXC_vect){
 		{
 			TRANSMIT = 0;
 			
-			UCSRB &= ~(1 << RXEN);
+			UCSRB &= (uint8_t)(~(uint8_t)(1 << RXEN));
 			
-			TIFR  |= 1 << ICF1;
-			TIMSK |= (1 << TICIE1);
+			TIFR  |= (uint8_t)(1 << ICF1);
+			TIMSK |= (uint8_t)(1 << TICIE1);
 		}
 	} 
 }
 
 ISR(TIMER1_CAPT_vect){
 				
-	if( !(TCCR1B & (1 << ICES1)) ){			//falling ?
+	if( !(TCCR1B & (uint8_t)(1 << ICES1)) ){			//falling ?
 		
-		TCCR1B |= (1 << ICES1); //triggers rising edge
+		TCCR1B |= (uint8_t)(1 << ICES1); //triggers rising edge
 		TCNT1 = 0;				//clear timer's value
 	}
 	else
 	{
 		 		
-		if ( ( (ICR1L | (ICR1H << 8)) >= (int)((F_CPU)/BAUD_13/PS) ) || (TIFR & (1 << TOV1)) ){		
+		if ( (((int)ICR1L | (int)(ICR1H << 8)) >= (int)((F_CPU)/BAUD_13/PS) ) || (TIFR & (uint8_t)(1 << TOV1)) ){		
 				
 			WAIT_SYNC_FIELD = 1;
 			//enable RXEN and disable CAPT interrupt
-			UCSRB |= 1 << RXEN;
-			TIMSK &= ~(1 << TICIE1);
+			UCSRB |= (uint8_t)(1 << RXEN);
+			TIMSK &= (uint8_t)(~(uint8_t)(1 << TICIE1));
 		}
-		TCCR1B &= ~(1 << ICES1); //triggers falling edge
+		TCCR1B &= (uint8_t)(~(uint8_t)(1 << ICES1)); //triggers falling edge
 	}
-	TIFR |= 1 << TOV1;		//clear overflow flag
+	TIFR |= (uint8_t)(1 << TOV1);		//clear overflow flag
 }
 
 void checksum(void){
-	int i = 0;
+	uint8_t i = 0;
 	int sum = 0;
 	if(WAIT_CHECKSUM)
 	{
 		while(i < (DATA_LEN-1) )
 		{
 			sum += data_bytes_RX[i];
-			if(sum >= 256)
+			if(sum >= (int)(256))
 			{
-				sum &= 0xFF;
+				sum &= (int)0xFF;
 				sum ++;
 			}
 			i++;
 		}
 
 		sum = ~sum;
-		sum &= 0xFF;
+		sum &= (int)0xFF;
 
-		if(sum == data_bytes_RX[DATA_LEN-1])
+		if(sum == (int)data_bytes_RX[DATA_LEN-1])
 		VALID_DATA = 1;
 		else
 		VALID_DATA = 0;
@@ -198,10 +198,10 @@ void checksum(void){
 	}
 }
 void init_Timer1(void){
-	TCCR1B &= ~(1 << ICES1); //triggers falling edge
+	TCCR1B &= (uint8_t)(~(uint8_t)(1 << ICES1)); //triggers falling edge
 	PS = 1;
-	TIMSK |= 1 << TICIE1;
-	TCCR1B |= 1 << CS10 ; // prescaler = 1
+	TIMSK |= (uint8_t)(1 << TICIE1);
+	TCCR1B |= (uint8_t)(1 << CS10) ; // prescaler = 1
 }
 
 void generate_checksum(void){
@@ -220,7 +220,7 @@ void generate_checksum(void){
 	sum = ~sum;
 	sum &= 0xFF;
 	
-	data_bytes_TX[DATA_LEN_TX-1] = sum;
+	data_bytes_TX[DATA_LEN_TX-1] = (uint8_t) sum;
 }
 
 uint8_t check_parity(uint8_t id){

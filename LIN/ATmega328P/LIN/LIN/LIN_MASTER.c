@@ -5,9 +5,9 @@ void INIT_LIN_MASTER(int BAUD_fn){
 	BAUD = BAUD_fn;
 	BAUD_13 = BAUD / 2;			//traditionally it's the half speed of the normal speed according to vector company
 	
-	UCSR0B |= 1 << TXEN0 | 1 << RXEN0 | 1 << RXCIE0;
-	UCSR0B &= ~(1 << UCSZ02);
-	UCSR0C |= 1 << UCSZ00 | 1 << UCSZ01;
+	UCSR0B |= (uint8_t)(1 << TXEN0) | (uint8_t)(1 << RXEN0) | (uint8_t)(1 << RXCIE0);
+	UCSR0B &=  (uint8_t) ~(1 << UCSZ02);
+	UCSR0C |= (uint8_t)(1 << UCSZ00) | (uint8_t)(1 << UCSZ01);
 	sei();
 	
 	init_Timer0();
@@ -45,7 +45,7 @@ uint8_t generate_parity(uint8_t id){
 	//calculate P0 , P1
 	P0 = ((id & 0x1) >> 0) ^ ((id & 0x2) >> 1) ^ ((id & 0x4) >> 2) ^ ((id  & 0x8) >> 3) ^ ((id & 0x10) >> 4);
 	P1 = !( ((id & 0x2) >> 1) ^ ((id & 0x4) >> 2) ^ ((id  & 0x8) >> 3) ^ ((id & 0x10) >> 4) ^ ((id & 0x20) >> 5) );
-	id = id | (P1 << 7) | (P0 << 6);
+	id = id | (uint8_t)(P1 << 7) | (uint8_t)(P0 << 6);
 	return id;
 }
 uint8_t check_parity(uint8_t id){
@@ -157,6 +157,9 @@ ISR(USART_RX_vect){
 			TRANSMIT = 0;
 		}	
 	}
+	else {
+		/* NOT REACHED */
+	}
 	
 	
 	if(MASTER_TASK)
@@ -195,16 +198,16 @@ ISR(TIMER0_OVF_vect){
 /**************************************************************************************/
 
 void checksum(void){
-	int i = 0;
+	uint8_t i = 0;
 	int sum = 0;
 	if(WAIT_CHECKSUM)
 	{
 		while(i < (DATA_LEN-1) )
 		{
-			sum += data_bytes_RX[i];
-			if(sum >= 256)
+			sum += (int)data_bytes_RX[i];
+			if(sum >= (int)(256))
 			{
-				sum &= 0xFF;
+				sum &= (int)0xFF;
 				sum ++;
 			}
 			i++;
@@ -223,11 +226,12 @@ void checksum(void){
 }
 
 void generate_checksum(void){
-	int sum = 0, i = 0;
+	int sum = 0;
+	uint8_t i = 0;
 	while(i < (DATA_LEN_TX-1) )
 	{
-		sum += data_bytes_TX[i];
-		if(sum >= 256)
+		sum += (int)data_bytes_TX[i];
+		if(sum >= (int)256)
 		{
 			sum &= 0xFF;
 			sum ++;
@@ -245,7 +249,7 @@ void init_Timer0(void){	//FAST PWM OVF set on TOP -> OCR0A
 	TCCR0A |= 1 << WGM01 | 1 << WGM00;
 	TCCR0B |= 1 << WGM02;
 	int prescaler = 1024;
-	int frame_width = ceil(F_CPU / prescaler / ( ( (unsigned long)(BAUD) * BAUD_13)/( (unsigned long) (50)* BAUD_13 + 10 * BAUD) ) ); 
+	uint8_t frame_width = (uint8_t)ceil(F_CPU / prescaler / ( ( (unsigned long)(BAUD) * BAUD_13)/( (unsigned long) (50)* BAUD_13 + 10 * BAUD) ) ); 
 	OCR0A = frame_width;
 	TIMSK0 |= 1 << TOIE0;				//timer0 overflow
 	TCCR0B |= 1 << CS02 | 1 << CS00;	//prescaler 1024
