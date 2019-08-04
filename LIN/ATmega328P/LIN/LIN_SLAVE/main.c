@@ -10,9 +10,10 @@ int main()
  { 
 	
 	INIT_LIN_SLAVE(19200);
-	
+	 
 	while (1)
 	{
+		//waiting for interruption
 	}
    return 0;
  }

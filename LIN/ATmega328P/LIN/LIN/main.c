@@ -1,18 +1,17 @@
-#include <inttypes.h>
-#include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/sleep.h>
+/* Using LIN communication library as a master. */
 
 #include "LIN_MASTER.h"
-
 
 int main()
  { 
 	
-	INIT_LIN_MASTER(19200);
+	init_lin_master(19200);
+	
+	while(1)
+		{
+			/* DO NOTHING */
+		}
 
-	while(1);
-
-	return 0;
+	return 0;	/* NOT REACHABLE */
  }
 

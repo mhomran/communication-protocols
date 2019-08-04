@@ -157,9 +157,9 @@ ISR(TIMER1_CAPT_vect){
 	}
 	else
 	{
-		 		
-		if ( (((int)ICR1L | (int)(ICR1H << 8)) >= (int)((F_CPU)/BAUD_13/PS) ) || (TIFR & (uint8_t)(1 << TOV1)) ){		
-				
+			//MISRA C:2012 R13.5
+		if ( (TIFR & (uint8_t)(1 << TOV1)) || (((int)ICR1L | (int)(ICR1H << 8)) >= (int)((F_CPU)/BAUD_13/PS) ) ){	
+																					
 			WAIT_SYNC_FIELD = 1;
 			//enable RXEN and disable CAPT interrupt
 			UCSRB |= (uint8_t)(1 << RXEN);
