@@ -35,6 +35,10 @@ static void FaultISR(void);
 static void IntDefaultHandler(void);
 
 //*****************************************************************************
+extern void CANIntHandler(void);
+//*****************************************************************************
+
+//*****************************************************************************
 //
 // External declaration for the reset handler that is to be called when the
 // processor is started
@@ -122,7 +126,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // Timer 3 subtimer B
     IntDefaultHandler,                      // I2C1 Master and Slave
     IntDefaultHandler,                      // CAN0
-    IntDefaultHandler,                      // CAN1
+	CANIntHandler	 ,                      // CAN1
     IntDefaultHandler,                      // Ethernet
     IntDefaultHandler,                      // Hibernate
     IntDefaultHandler,                      // USB0
