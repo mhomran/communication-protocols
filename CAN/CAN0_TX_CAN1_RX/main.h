@@ -1,12 +1,8 @@
-#include <stdbool.h>
-#include <stdint.h>
-#include "inc/hw_can.h"
-#include "inc/hw_ints.h"
-#include "inc/hw_memmap.h"
-#include "driverlib/can.h"
-#include "driverlib/gpio.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/pin_map.h"
-#include "driverlib/sysctl.h"
-#include "tm4c1294ncpdt.h"
+#ifndef _MAIN_H
+#define _MAIN_H
 
+#include <stdint.h>
+#include "CAN_ud/CAN_ud.h"
+#include "GPIO_ud/GPIO_ud.h"
+
+#endif

@@ -47,6 +47,11 @@ extern void CANIntHandler(void);
 extern void _c_int00(void);
 
 //*****************************************************************************
+// PORT M handler
+//*****************************************************************************
+extern void port_m_handler(void);
+
+//*****************************************************************************
 //
 // Linker variable that marks the top of the stack.
 //
@@ -159,7 +164,7 @@ void (* const g_pfnVectors[])(void) =
     0,                                      // Reserved
     IntDefaultHandler,                      // I2C4 Master and Slave
     IntDefaultHandler,                      // I2C5 Master and Slave
-    IntDefaultHandler,                      // GPIO Port M
+    port_m_handler   ,                      // GPIO Port M
     IntDefaultHandler,                      // GPIO Port N
     0,                                      // Reserved
     IntDefaultHandler,                      // Tamper
