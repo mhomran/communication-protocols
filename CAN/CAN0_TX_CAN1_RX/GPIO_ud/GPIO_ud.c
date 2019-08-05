@@ -1,5 +1,7 @@
 #include "GPIO_ud/GPIO_ud.h"
 
+/* Initialize GPIOs*/
+
 void
 init_button_pm4(void)
 {
